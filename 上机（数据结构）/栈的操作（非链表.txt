@@ -1,0 +1,29 @@
+/*栈的类实现*/
+//注：非链表实现
+class Stack{
+	private:
+		int *stackArray;//存放栈元素的纾尊 
+		int size;//数组大小
+		int top;//栈顶元素下标
+	public:
+		Stack(int StackSize){//构造函数 
+			size=StackSize;
+			stackArray=new int[size];
+			top=-1;
+		} 
+		~Stack(){//析构函数 
+			delete[] stackArray;
+		}
+		void Push(int item){//压栈 
+			stackArray[++top]=item;
+		}
+		void Pop(){//弹栈 
+			top--;
+		} 
+		int Top(){//读取栈顶元素 
+			return stackArray[top];
+		}
+		void clear(){//清空栈 
+			top=-1;
+		}
+};

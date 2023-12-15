@@ -1,0 +1,96 @@
+/*二叉树最深间隔最远结点 (10 分)
+给定一棵非空二叉树，数据域值为不等于0的整数。请编写程序找出其最深层间隔最远的两个结点，
+输出这两个结点差的绝对值。
+如图1所示的各二叉树最深层间隔最远的结点为5和8。
+如果最深层只有一个结点，则输出0。
+输入格式:
+输入为一组用空格间隔的整数，个数不超过200个，表示带空指针信息的二叉树先根序列，其中空指针信息用0表示。
+
+输出格式:
+输出为一个整数，为二叉树最深层间隔最远的两个结点差的绝对值，如果最深层只有一个结点，则输出0。
+
+输入样例1:
+1 2 0 5 0 0 3 6 0 0 8 0 0
+输出样例1:
+3
+输入样例2:
+1 2 0 5 0 0 3 0 0
+输出样例2:
+0
+*/
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+struct TreeNode{
+	int data;
+	struct TreeNode* left;
+	struct TreeNode* right;
+};
+int a[200][200];
+typedef struct TreeNode *BinTree;
+void PreOrderTravel(BinTree bt,int k){
+	int tmp=0;
+	if(bt!=NULL){
+		while(a[k][tmp]!=0){
+			tmp++;
+		}
+		//printf("*%d\n",tmp);
+		a[k][tmp]=bt->data;
+		//printf("%d\n",bt->data);
+	//	printf("(%d)(%d)*%d\n",k,tmp,a[k][tmp]);
+	}
+	if(bt->left!=NULL){
+		PreOrderTravel(bt->left,k+1);
+	}
+	if(bt->right!=NULL){
+		PreOrderTravel(bt->right,k+1);
+	}
+}
+int Height(BinTree bt){
+	if(bt==NULL){
+		return 0;
+	}
+	else{
+		if(Height(bt->left)>Height(bt->right)){
+			return (Height(bt->left)+1);
+		}
+		else {
+			return (Height(bt->right)+1);
+		}
+	}
+}
+BinTree CreateTree(){//count记录第几次执行这个程序 
+	char put;
+	int ch;
+	scanf("%d",&ch);
+	BinTree root; 
+	if(ch==0){//一个一个输入 把输入挪过来 
+		root=NULL;
+		return root;
+	}
+	else{
+		root=(BinTree)malloc(sizeof(struct TreeNode));
+		root->data=ch;
+		root->left=CreateTree();
+		root->right=CreateTree();
+		return root;
+	}
+}
+int main(){
+	int k=0,i=0,branch=0;//k计算树深度 
+	BinTree root;
+	root=CreateTree();
+	int height=Height(root);
+	PreOrderTravel(root,0);
+	while(a[k][0]!=0){
+		k++;
+	}//k-1即为树的深度 
+	while(a[k-1][i]!=0){
+		i++;
+	}
+	int abso=a[k-1][i-1]-a[k-1][0];
+	if(abso>=0)printf("%d",abso);
+	else printf("%d",-abso);
+	return 0;
+}

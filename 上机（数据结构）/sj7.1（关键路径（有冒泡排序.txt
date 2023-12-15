@@ -1,0 +1,198 @@
+/*关键路径 (10 分)
+假定一个工程由若干子任务构成，使用一个包含n个顶点、e条边的AOE网表示该工程，顶点编号为1至n，
+有向边表示该工程的每个子任务，边的权值表示完成该子任务所需的时间，
+假定网中只含一个源点和一个汇点。
+请编写程序求出该工程的所有关键活动，并计算完成该工程所需的最短时间。
+
+输入格式:
+每个测试点包含多组测试数据。每组数据第一行为2个整数n和e，均不超过200，
+分别表示AOE网的顶点数和边数。接下来e行表示每条边的信息，每行为3个正整数a、b、c，
+其中a和b表示该边的端点编号，c表示权值。
+各边并不一定按端点编号顺序排列，且各顶点并不一定按拓扑序排列。
+
+输出格式:
+对每组数据，若工程不可行（AOE网中存在环），输出“unworkable project”；
+若工程可行，则输出第一行为完成工程所需的最短时间，并从第2行开始输出关键活动，
+每个关键活动占一行，格式为i->j，其中i和j表示关键活动所在边的端点编号。
+各关键活动输出顺序为：按i的递增顺序输出，若多个关键活动的i值相同，则按j的递增顺序输出。
+
+输入样例:
+4 4
+1 2 6
+1 3 4
+2 4 1
+3 4 1
+输出样例:
+7
+1->2
+2->4
+*/
+
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+#define INFINITY 65535
+using namespace std;
+//边结点的结构体 
+struct Edge{
+	int VerAdj;//邻接顶点序号，从0开始编号 注意：单向的图 只有一个点 
+	int cost;//边的权值
+	Edge *link;//指向下一个边结点的指针 
+};
+//顶点表中结点的结构体 
+struct Vertex{
+	int VerName;//顶点名称
+	Edge *adjacent;//边链表的头指针 
+};
+//图结构体 
+struct Graph_List{
+	Vertex *Head;//顶点表头指针，Head[i]代表顶点i引出的所有边 
+	int graphsize;//图中当前顶点个数 
+};
+struct ans{
+	int ans1;
+	int ans2;
+};
+Graph_List CreateGraph(int n,int e){
+	Graph_List Graph;
+	int from,to,weight;
+	Graph.graphsize=n;
+	Graph.Head=new Vertex[n];
+	for(int i=0;i<Graph.graphsize;i++){//初始化 
+		Graph.Head[i].VerName=i+1; 
+		Graph.Head[i].adjacent=NULL;
+	}
+	for(int i=0;i<e;i++){
+		cin>>from>>to>>weight;//输入新的边的开始点，终点，权值
+		Edge *p=new Edge;
+		p->VerAdj=to-1;
+		p->cost=weight;
+		p->link=NULL;
+		Edge *q=Graph.Head[from-1].adjacent;
+		if(q==NULL)//如果这个顶点里没有东西，只需要连p即可 
+			Graph.Head[from-1].adjacent=p;
+		else{
+			while(q->link!=NULL)
+				q=q->link;
+			q->link=p;
+		}
+	}
+	return Graph;
+}
+int TopoOrder(Vertex *Head,int n,int *topo){//n=GraphSize
+	int i=0,j=0,k=0;
+	int *count=new int[n];//count存储所有度数
+	for(i=0;i<n;i++)count[i]=0;
+	for(i=0;i<n;i++){
+		Edge *p=Head[i].adjacent;
+		while(p!=NULL){
+			count[p->VerAdj]++;
+			p=p->link;
+		} 
+	}
+	int top=-1;
+	for(i=0;i<n;i++){//初始化的时候入度为0的点入栈 
+		if(count[i]==0){
+			count[i]=top;top=i;
+		}
+	}
+	for(i=0;i<n;i++){//进行拓扑排序 
+		if(top==-1)return -1;
+		else{
+			int j=top;top=count[top];//从栈中弹出一个顶点j
+			topo[i]=j;
+			Edge *p=Head[j].adjacent;//p为j的边链表头指针
+			while(p!=NULL){
+				int k=p->VerAdj;//k为边<j,k>的终点
+				if(--count[k]==0){//让k的入度-1，若入度变成0了，k入栈 
+					count[k]=top;
+					top=k;
+				}
+				p=p->link;
+			}
+		}
+	}
+	delete[] count;
+	return 0;
+}
+void BubbleSort(ans *R,int counter){//counter:数组有多少个数 
+	int bound,j,i;
+	ans tmp;
+	bound=counter-1;
+	for(i=0;i<bound;i++){
+		for(j=0;j<bound-i;j++){
+			if(R[j].ans1>R[j+1].ans1){
+				tmp=R[j];
+				R[j]=R[j+1];
+				R[j+1]=tmp;
+			}
+			else if(R[j].ans1==R[j+1].ans1&&R[j].ans2>R[j].ans2){
+				tmp=R[j];
+				R[j]=R[j+1];
+				R[j+1]=tmp;
+			}
+		}
+	}
+}
+void CriticalPath(Vertex *Head,int *topo,int n){//n=GraphSize
+	int i=0,k=0,m=0,l=0;
+	int *count=new int [n];
+	int *ve=new int[n];//事件最早发生时间 
+	int *vl=new int[n];//事件最迟发生时间
+	ans *q=new ans[n];//包含两个数组，方便排序 
+	for(i=0;i<n;i++){//初始化ve[] 
+		ve[i]=0;
+	}
+	for(i=0;i<n;i++){//topo排序法寻找各个事件允许最早发生时间 
+		Edge *p=Head[topo[i]].adjacent;
+		while(p!=NULL){
+			k=p->VerAdj;
+			if(ve[topo[i]]+p->cost>ve[k])
+				ve[k]=ve[topo[i]]+p->cost;
+			p=p->link;
+		}
+	}
+	for(i=0;i<n;i++){//vl[]初始化
+		vl[i]=ve[topo[n-1]];//所有最迟刚开始都是在最后一个点前面一个完工
+	}
+	for(i=n-2;i>=0;i--){//逆序计算最迟动工时间
+		Edge *p=Head[topo[i]].adjacent;
+		while(p!=NULL){
+			k=p->VerAdj;
+			if(vl[k]-p->cost<vl[topo[i]])vl[topo[i]]=vl[k]-p->cost;
+			p=p->link;
+		}
+	}
+	int counter=0;//计算答案组数
+	int temp=0;
+	cout<<ve[topo[n-1]]<<endl;
+	for(i=0;i<n;i++){
+		Edge *p=Head[topo[i]].adjacent;
+		while(p!=NULL){
+			k=p->VerAdj;
+			m=ve[topo[i]];
+			l=vl[k]-p->cost;
+			if(l==m){//cout<<i+1<<"->"<<k+1<<endl;
+				q[counter].ans1=topo[i]+1;
+				q[counter].ans2=k+1;
+				counter++;
+			}
+			p=p->link;
+		}
+	}
+	BubbleSort(q,counter);
+	for(i=0;i<counter;i++){
+		cout<<q[i].ans1<<"->"<<q[i].ans2<<endl;
+	}
+}
+int main(){
+	int n,e,flag;
+	while(cin>>n>>e){
+		Graph_List Graph=CreateGraph(n,e);
+		int *topo=new int[n];
+		flag=TopoOrder(Graph.Head,n,topo);
+		if(flag==-1)cout<<"unworkable project"<<endl;
+		else CriticalPath(Graph.Head,topo,n);
+	}
+	return 0;
+}

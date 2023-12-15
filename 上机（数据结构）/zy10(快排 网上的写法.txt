@@ -1,0 +1,51 @@
+/*排序 (5 分)（快排 是网上的写法）
+请编写程序对不超过50000个整数递增排序。
+
+输入格式:
+输入第一行一个正整数n，表示待排序的元素个数。第二行为n个整数，表示待排序的元素。n不超过50000。
+
+输出格式:
+输出为一行，表示排序结果，每个整数后一个空格。
+
+输入样例:
+5
+5 4 3 2 1
+输出样例:
+1 2 3 4 5 */
+
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+using namespace std;
+void QSort(int *arr,int begin,int end){//选择Km作为划分的关键词 
+	if(begin>end)return;
+	int tmp=arr[begin];//tmp为基准，刚开始是arr第一个数 
+	int i=begin;
+	int j=end;
+	while(i!=j){//让tmp左边比tmp小，右边比tmp大 
+		while(arr[j]>=tmp&&j>i)j--;//寻找arr[j]使arr[j]<tmp---异常 注意必须是j先动，因为最后要把探测到异常的小的放前面，如果i先动最后就放后面 
+		while(arr[i]<=tmp&&j>i)i++;//寻找arr[i]使arr[i]>tmp---异常 
+		if(j>i){//交换arr[i],arr[j] 
+			int temp=arr[i];
+			arr[i]=arr[j];
+			arr[j]=temp;
+		}
+	}
+	arr[begin]=arr[i];//i==j点改到开头 
+	arr[i]=tmp;//左边都比tmp小，右边都比tmp大 
+	QSort(arr,begin,i-1);//左边排序 
+	QSort(arr,i+1,end);//右边排序 
+}
+int main(){
+	int n;
+	cin>>n;
+	int *arr=new int[n];
+	for(int i=0;i<n;i++){
+		cin>>arr[i];
+	}
+	QSort(arr,0,n-1);
+	for(int i=0;i<n;i++){
+		cout<<arr[i]<<" ";
+	}
+	return 0;
+}

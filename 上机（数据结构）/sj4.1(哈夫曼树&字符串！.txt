@@ -1,0 +1,207 @@
+/*哈夫曼树 (15 分)
+编写一个哈夫曼编码译码程序。
+针对一段文本，根据文本中字符出现频率构造哈夫曼树，给出每个字符的哈夫曼编码，并进行译码，
+计算编码前后文本大小。 为确保构建的哈夫曼树唯一，本题做如下限定：
+
+选择根结点权值最小的两棵二叉树时，选取权值较小者作为左子树。
+若多棵二叉树根结点权值相等，则先生成的作为左子树，后生成的作为右子树，
+具体来说：i) 对于单结点二叉树，优先选择根结点对应字母在文本中最先出现者，
+如文本为cba，三个字母均出现1次，但c在文本中最先出现，
+b第二出现，故则选择c作为左子树，b作为右子树。
+ii) 对于非单结点二叉树，先生成的二叉树作为左子树，后生成的二叉树作为右子树。
+iii. 若单结点和非单结点二叉树根结点权值相等，优先选择单结点二叉树。
+生成哈夫曼编码时，哈夫曼树左分支标记为0，右分支标记为1。
+输入格式:
+输入为3行。第1行为一个字符串，包含不超过5000个字符，至少包含两个不同的字符，
+每个字符为a-z的小写字母。第2、3行为两个由0、1组成的字符串，表示待译码的哈夫曼编码。
+
+输出格式:
+输出第一行为用空格间隔的2个整数，分别为压缩前后文本大小，以字节为单位，一个字符占1字节，
+8个二进制位占1字节，若压缩后文本不足8位，则按1字节算。输出从第二行开始，
+每行为1个字符的哈夫曼编码，按各字符在文本中出现次数递增顺序输出，
+若多个字符出现次数相同，则按其在文本出现先后排列。
+每行格式为“字母:编码”。最后两行为两行字符串，表示译码结果，若译码失败，则输出INVALID。
+
+输入样例:
+cbaxyyzz
+0100
+011
+输出样例:
+8 3
+c:100
+b:101
+a:110
+x:111
+y:00
+z:01
+zy
+INVALID
+*/
+
+#include<iostream>
+#include<stdio.h> 
+#include<stdlib.h>
+#include<string.h>
+#define MAXVALUE 32767
+using namespace std;
+struct BaseNode{
+	char ch;//保存字符 
+	int frequency;//表示字符出现频率 
+};
+struct TreeNode{
+	int weight;
+	int parent;//双亲结点 
+	int lchild;
+	int rchild;
+	char flag;
+};
+typedef struct TreeNode *HuffmanTree;
+void printlast(int TypeNumber,HuffmanTree *HuffNode,BaseNode **node){
+	int i=0;
+	for(i=0;i<2;i++){
+		string decypher0;
+		cin>>decypher0;
+		int lenth=decypher0.length();
+		int sign=0;
+		int bottom;
+		int j=0;
+		bottom=TypeNumber*2-1;
+		string afterde;//afterde是decypher0之后的结果 进行输出
+		while(j<lenth){
+			while(HuffNode[bottom]->lchild!=-1){
+				if(decypher0[j]=='0'){
+					bottom=HuffNode[bottom]->lchild;
+				}
+				if(decypher0[j]=='1'){
+					bottom=HuffNode[bottom]->rchild;
+				}
+				if(decypher0[j]!='0'&&decypher0[j]!='1'){
+					sign=1;
+					break;
+				}
+				j++;
+			}
+			if(sign==0){
+				afterde=afterde+node[bottom-1]->ch;
+				bottom=TypeNumber*2-1;
+			}
+			else break;
+		}
+		if(sign==0)cout<<afterde<<endl;
+		else printf("INVALID\n");
+	}
+}
+int main(){
+	char data[5000];//开始的数据 
+	cin>>data;
+	int i=0,j=0; 
+	int TypeNumber=0;//开始一共有0种字符
+	int length=strlen(data);//输入字符长度 
+	BaseNode *node[length];//保存所有出现过的字母 
+	for(i=0;i<length;i++){
+		node[i]=(BaseNode*)malloc(sizeof(BaseNode));
+		node[i]->frequency=0;
+	}
+	for(i=0;i<length;i++){
+		for(j=0;j<TypeNumber;j++){
+			if(data[i]==node[j]->ch)
+			break;
+		}
+		if(j<TypeNumber){
+			node[j]->frequency++;
+		}
+		else{
+			node[j]->ch=data[i];
+			node[j]->frequency++;
+			TypeNumber++;
+		}
+	}
+//	printf("%d\n",TypeNumber);
+	//下面按weight从大到小排列
+	char datat;
+	int tmp=0;
+	for(i=0;i<TypeNumber-1;i++){
+		for(j=0;j<TypeNumber-1;j++){
+			if(node[j]->frequency>node[j+1]->frequency){//将两者直接交换
+				datat=node[j]->ch;
+				tmp=node[j]->frequency;
+				node[j]->ch=node[j+1]->ch;
+				node[j]->frequency=node[j+1]->frequency;
+				node[j+1]->ch=datat;
+				node[j+1]->frequency=tmp;
+			}
+		}
+	}
+	/*for(i=0;i<TypeNumber;i++){
+		cout<<node[i]->frequency<<endl;
+	}*/
+	//开始构建哈夫曼树
+	HuffmanTree HuffNode[2*TypeNumber-1];
+	int a,b,x1,x2;
+	for(i=1;i<2*TypeNumber;i++){//初始化结点 
+		HuffNode[i]=(HuffmanTree)malloc(sizeof(struct TreeNode));
+		HuffNode[i]->weight=0;
+		HuffNode[i]->parent=-1;
+		HuffNode[i]->lchild=-1;
+		HuffNode[i]->rchild=-1;
+		HuffNode[i]->flag=-1;
+	}
+	for(i=1;i<=TypeNumber;i++){
+		HuffNode[i]->weight=node[i-1]->frequency;
+	//	cout<<HuffNode[i]->weight<<endl;
+	}
+	for(i=1;i<TypeNumber;i++){//构造哈夫曼树 
+		a=MAXVALUE;
+		b=MAXVALUE;
+		x1=0;
+		x2=0;
+		for(j=1;j<TypeNumber+i;j++){//选取最小和次小两个权值 
+			if(HuffNode[j]->parent==-1&&HuffNode[j]->weight<a){
+				b=a;
+				x2=x1;
+				a=HuffNode[j]->weight;
+				x1=j;
+			//	printf("!");
+			}
+			else if(HuffNode[j]->parent==-1&&HuffNode[j]->weight<b){
+					b=HuffNode[j]->weight;
+					x2=j;
+				}
+			}
+		HuffNode[x1]->parent=TypeNumber+i;
+		HuffNode[x2]->parent=TypeNumber+i;
+		HuffNode[x1]->flag='0';
+		HuffNode[x2]->flag='1';
+		HuffNode[TypeNumber+i]->weight=HuffNode[x1]->weight+HuffNode[x2]->weight;//weight相加，组成新节点 
+		HuffNode[TypeNumber+i]->lchild=x1;
+		HuffNode[TypeNumber+i]->rchild=x2;
+	}
+	HuffmanTree s;
+	string *code;//code为将要输出的二进制编码组 
+	code=new string[2*TypeNumber-1]; 
+	for(i=1;i<=TypeNumber;i++){
+		s=HuffNode[i];
+		while(s->parent!=-1){
+			code[i-1]=s->flag+code[i-1];//!!
+			s=HuffNode[s->parent];
+		}
+	}
+//开始打印编码
+	int number2;//number2为压缩后个数
+	string typ;//打印出的编码部分的字符串组 
+	for(i=0;i<length;i++){
+		for(j=0;j<TypeNumber;j++){
+			if(data[i]==node[j]->ch){
+				typ=typ+code[j];
+			}
+		}
+	}
+	int temp=typ.length();
+	number2=(temp%8==0)?temp/8:temp/8+1;
+	printf("%d %d\n",length,number2);
+	for(i=0;i<TypeNumber;i++){
+		cout<<node[i]->ch<<":"<<code[i]<<endl;
+	}
+	printlast(TypeNumber,HuffNode,node);
+	return 0;
+}

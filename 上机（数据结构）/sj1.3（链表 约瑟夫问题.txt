@@ -1,0 +1,116 @@
+/*特殊约瑟夫问题 (10 分)
+编号为1…N的N个小朋友玩游戏，他们按编号顺时针围成一圈，从第一个人开始按逆时针次序报数，
+报到第M个人出列；然后再从下个人开始按顺时针次序报数，报到第K个人出列；
+再从下一个人开始按逆时针次序报数，报到第M个人出列；
+再从下个人开始按顺时针次序报数，报到第K个人出列……以此类推不断循环，直至最后一人出列。
+请编写程序按顺序输出出列人的编号。
+输入格式:
+输入为3个正整数，分别表示N、M、K，均不超过1000。
+输出格式:
+输出为一行整数，为出列人的编号。每个整数后一个空格。
+输入样例:
+6 3 5
+输出样例:
+5 3 1 2 4 6 
+*/
+#include<stdio.h>
+#include<stdlib.h>
+struct Node{
+	struct Node *pre;
+	struct Node *next;
+	int data;
+};
+typedef struct Node *list;
+list Headlist(){
+	list head=(list)malloc(sizeof(list));
+	head->next=head->pre=NULL;
+	return head;
+}
+void CreateList(list s,int n){
+	list p=s,q;
+	int i=1;
+	while(n--){
+		q=(list)malloc(sizeof(list));
+		q->data=i;
+		i++;
+		p->next=q;
+		q->pre=p;
+		q->next=s;
+		s->pre=q;
+		p=q;
+	}
+}
+void TravelList(list s){
+	list p=s->pre;
+	while(p!=s){
+		printf("%d ",p->data);
+		p=p->pre;
+	}
+}
+list Clockwisep(int k,list s,list head){
+	int timer=1;
+	list tmp=s;
+	while(1){
+		if(tmp==head){
+			tmp=tmp->next;
+		}
+		else{
+		if(timer==k){
+			printf("%d ",tmp->data);
+			tmp->pre->next=tmp->next;
+			tmp->next->pre=tmp->pre;
+			if(tmp->next==head)return tmp->next->next;
+			else return tmp->next;
+			free(tmp);
+			break;
+		}
+		else{
+	//		printf("\n*%d\n",tmp->data);
+			timer++;
+			tmp=tmp->next;
+		}
+	}
+}
+}
+list antiClockwisep(int m,list tail,list head){
+	int timer=1;
+	list tmp=tail;
+	while(1){
+		if(tmp==head){
+			tmp=tmp->pre;
+		}
+		else{
+		if(timer==m){
+			printf("%d ",tmp->data);
+			tmp->pre->next=tmp->next;
+			tmp->next->pre=tmp->pre;
+			if(tmp->pre==head)return tmp->pre->pre;
+			else return tmp->pre;
+			free(tmp);
+			break;
+		}
+		else{
+	//		printf("\n*%d\n",tmp->data);
+			timer++;
+			tmp=tmp->pre;
+			}
+	}
+}
+}
+int main(){
+	int n,m,k,i,j,time;
+	scanf("%d %d %d",&n,&m,&k);
+	list head=Headlist(); 
+	CreateList(head,n);
+	list tail=head->pre;
+	list tmpHead=head;
+//	TravelList(head);
+	int ppl=n;
+	tmpHead=tmpHead->next;
+	while(ppl>0){
+		tmpHead=antiClockwisep(m,tmpHead,head);
+		ppl--;
+		tmpHead=Clockwisep(k,tmpHead,head);
+		ppl--;
+	}
+}

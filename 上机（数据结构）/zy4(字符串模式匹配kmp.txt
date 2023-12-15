@@ -1,0 +1,65 @@
+/*字符串模式匹配 
+给定主串s和模式串p，编写程序输出p在s中出现的首位置，若p不在s中则输出-1。字符串下标从0开始。
+
+输入格式:
+输入为2行，第1行主串s，第2行为模式串p。主串和模式串长度不超过100000。
+
+输出格式:
+输出为2行，第1行为若干整数，表示模式串p的失败函数值，每个整数后一个空格；第2行为一个整数，表示p在s中出现的首位置，若p不在s中则输出-1。
+
+输入样例:
+qwerabcabhlk
+abcab
+输出样例:
+-1 -1 -1 0 1 
+4*/
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+void kmp(char *p,int *prefix,int pl){
+	prefix[0]=-1;
+	int i,j;
+	for(j=1;j<pl;j++){
+		i=prefix[j-1];
+		while(p[j]!=p[i+1]&&i>=0){
+			i=prefix[i];
+		}
+		if(p[j]==p[i+1])
+			prefix[j]=i+1;
+		else prefix[j]=-1;
+	}
+}
+int find(char *s,char *p,int sl,int pl,int *prefix){
+	int i=0,j=0,position=0;
+	int m=pl,n=sl; 
+	while(i<m&&j<n){
+		if(p[i]==s[j]){
+			i=i+1;j=j+1;
+		}
+		else{
+			if(i==0)j=j+1;
+			else{
+				i=prefix[i-1]+1;
+			}
+		}
+	}
+	if(i<m)return -1;
+	else return (j-m);
+}
+int main(){
+	char s[100000],p[100000];
+	int sl,pl,i;
+	int prefix[100000];
+	scanf("%s",s);
+	scanf("%s",p);
+	sl=strlen(s);
+	pl=strlen(p);
+	kmp(p,prefix,pl);
+	for(i=0;i<pl;i++){
+		printf("%d ",prefix[i]);
+	}
+	printf("\n");
+	printf("%d",find(s,p,sl,pl,prefix));
+	return 0;
+}	

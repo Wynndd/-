@@ -1,0 +1,96 @@
+/*二叉树删除子树 (5 分)
+编写程序对给定二叉树执行若干次删除子树操作，输出每次删除子树后剩余二叉树的中根序列。
+二叉树结点的数据域值为不等于0的整数。每次删除操作是在上一次删除操作后剩下的二叉树上执行。
+
+输入格式:
+输入第1行为一组用空格间隔的整数，表示带空指针信息的二叉树先根序列，其中空指针信息用0表示。
+例如1 5 8 0 0 0 6 0 0表示如下图的二叉树。
+第2行为整数m，表示要进行的删除操作次数。
+接下来m行，每行一个不等于0的整数K，表示要删除以K为根的子树。
+m不超过100，二叉树结点个数不超过5000。
+输入数据保证各结点数据值互不相等，且删除子树后二叉树不为空。
+输出格式:
+输出为m行，每行为一组整数，表示执行删除操作后剩余二叉树的中根序列
+（中根序列中每个整数后一个空格）。
+若要删除的子树不在当前二叉树中，则该行输出0（0后无空格）。
+
+输入样例:
+1 5 8 0 0 0 6 0 0
+3
+5
+8
+6
+结尾无空行
+输出样例:
+1 6 
+0
+1 
+结尾无空行*/
+
+#include<stdio.h>
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+struct TreeNode{
+	int data;
+	struct TreeNode* left;
+	struct TreeNode* right;
+};
+typedef struct TreeNode *BinTree;
+BinTree CreateTree(){
+	char put;
+	int ch;
+	scanf("%d",&ch);
+	BinTree root; 
+	if(ch==0){
+		root=NULL;
+		return root;
+	}
+	else{
+		root=(BinTree)malloc(sizeof(struct TreeNode));
+		root->data=ch;
+		root->left=CreateTree();
+		root->right=CreateTree();
+		return root;
+	}
+}
+void MidOrderTravel(BinTree bt){
+	if(bt->left!=NULL)MidOrderTravel(bt->left);
+	if(bt!=NULL)printf("%d ",bt->data);
+	if(bt->right!=NULL)MidOrderTravel(bt->right);
+}
+void Del(BinTree &root,int goal,bool &flag){
+	if(root==NULL){
+		flag=false;
+		return;
+	}
+	if(root->data==goal){
+		root=NULL;
+		flag=true;
+		return;
+	}
+	Del(root->left,goal,flag);
+	if(!flag)Del(root->right,goal,flag);
+}
+int main(){
+	BinTree root;
+	bool flag;
+	root=CreateTree();
+	BinTree change=root;
+	BinTree temp;
+	int timer=0;
+	int item=0;
+	scanf("%d",&timer);
+	for(int i=0;i<timer;i++){
+		scanf("%d",&item);
+		Del(root,item,flag);
+		if(flag==false){
+			printf("0\n");
+		}
+		else{
+			MidOrderTravel(root);
+			printf("\n");
+		}
+	}
+	return 0;
+}

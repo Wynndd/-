@@ -1,0 +1,145 @@
+/*B 排列论文 (15 分) （拓扑排序
+给定编号为1至n的n篇论文，以及m个形如d, u (1≤d,u≤n,d
+
+=u)的引用关系，表示论文论文d中定义的一个名词在论文u中被引用。
+现在要对这n篇论文重新排列，排列方案须满足如下要求：
+一篇论文引用的名词必须在排在他前面的论文中被定义过。
+
+请编写程序粗略计算都有多少种满足要求的方案，如果无满足要求的方案则输出0，如果有唯一方案则输出1，如果有多种方案则输出2。
+
+输入格式:
+输入包含多组数据，每组数据第一行为两个正整数n和m，分别表示论文篇数和引用关系数，均不超过100。接下来m行表示论文引用关系，每行为空格间隔的2个正整数d和u，表示论文论文d中定义的一个名词在论文u中被引用。
+
+输出格式:
+对于每组数据输出一个整数：无满足要求的排列方案则输出0，如果有唯一方案则输出1，如果有多种方案则输出2。
+
+输入样例:
+5 4
+1 5
+5 2
+3 2
+4 3
+5 4
+3 1
+4 2
+1 5
+5 4
+输出样例:
+2
+1
+*/
+
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+#define INFINITY 65535
+#define MaxVertexNum 100
+using namespace std;
+typedef struct ENode *PtrToENode;
+struct ENode{
+	int v1,v2;//有向边v1,v2 
+};
+typedef PtrToENode Edge;
+typedef struct GNode *PtrToGNode;
+struct GNode{
+	int Nv;//顶点个数 
+	int Ne;//边个数 
+	int G[100][100];//邻接矩阵
+};
+typedef PtrToGNode MGraph;
+MGraph CreateGraph(int VertexNum){//初始化一个有VertexNum个顶点没有边的图 
+	int v,w;
+	MGraph Graph;
+	Graph=(MGraph)malloc(sizeof(struct GNode));
+	Graph->Nv=VertexNum;
+	Graph->Ne=0;
+	for(v=0;v<Graph->Nv;v++){
+		for(w=0;w<Graph->Nv;w++){
+			Graph->G[v][w]=INFINITY;
+		}
+	}
+	return Graph;
+}
+MGraph BuildGraph(int n,int m,int d[],int u[]){//一共n篇论文（顶点），m个被引用关系（边） 
+	MGraph  Graph=CreateGraph(n);
+	Edge E;//边 
+	int V;//顶点 
+	int i;
+	Graph->Ne=m;//输入边的条数
+	if(Graph->Ne!=0){//如果边数不为0 
+		E=(Edge)malloc(sizeof(struct ENode));//建立边结点
+		//读入边，格式为起点，终点；插入邻接矩阵
+		for(i=0;i<m;i++){
+			E->v1=d[i];
+			E->v2=u[i];
+			E->v1--;E->v2--; 
+			Graph->G[E->v1][E->v2]=1;//插入边v1v2为1 注意：编号从0开始，注意找边时加
+			//求任何一个count/graph->G[i][j]都为编号number-1
+		}
+	}
+	return Graph; 
+}
+void TopoOrder(int n,int m){//n篇论文，m个引用关系 
+	int i=0,j=0,k=0;
+	int d[100],u[100],count[100];
+	int flag=0,sign=0,flag1=0;
+//如果有多种选择，flag变为1，若最后不构成回路能正常输出且flag=1，则输出2，否则1；构成回路，中断，为0
+//sign表示找到一个入度为0的之后sign=1,继续往下搜索，如果还能搜索到别的入度为0的点，证明排序方法不止一种，flag=1；
+//flag1如果为1，则 
+	int top=-1,answer=0;
+	for(i=0;i<m;i++){
+		cin>>d[i]>>u[i];
+	}
+	MGraph Graph=BuildGraph(n,m,d,u);
+	for(i=0;i<n;i++){
+		count[i]=0;
+	}
+	for(i=0;i<n;i++){
+		for(j=0;j<n;j++){//count[i]取对应顶点i的入度Graph->G[b][i]为1的话++(b从1到n遍历)
+			if(Graph->G[j][i]==1){
+				count[i]++;
+			}
+		}
+	}
+	//入度为0的入栈
+	for(i=0;i<n;i++){
+		if(count[i]==0){
+			count[i]=top;top=i;
+			if(sign==1)flag=1;
+			else sign=1;
+		}
+	}
+	//拓扑排序 
+	for(i=0;i<n;i++){
+		if(top==-1){//有回路 
+			cout<<"0"<<endl;
+			return;
+		}
+		else{
+			j=top;top=count[top];
+//			cout<<"拓扑排序输出"<<j+1<<endl;//拓扑排序输出
+			for(k=0;k<n;k++){
+				if(Graph->G[j][k]==1){
+					Graph->G[j][k]=-1;//删除的边初始化为-1
+					count[k]--;
+//					cout<<"关联点的入度"<<count[k]<<endl;
+					if(count[k]==0){
+						count[k]=top;top=k;
+//						if(sign==1)flag=1;
+//						else sign=1;
+					}
+				}
+			}
+		}
+	}
+	if(flag==1)answer=2;
+	else answer=1;
+	cout<<answer<<endl;
+}
+int main(){
+	int m,n;
+	while(cin>>n>>m){
+		TopoOrder(n,m);
+	}
+	return 0;
+}

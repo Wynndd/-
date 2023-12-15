@@ -1,0 +1,125 @@
+//链表的基本操作
+/*请编写程序实现单链表插入、删除结点等基本算法。
+给定一个单链表和一系列插入、删除结点的操作序列，
+输出实施上述操作后的链表。单链表数据域值为整数。
+
+输入格式:
+输入第1行为1个正整数n，表示当前单链表长度；
+第2行为n个空格间隔的整数，为该链表n个元素的数据域值。
+第3行为1个正整数m，表示对该链表施加的操作数量；
+接下来m行，每行表示一个操作，为2个或3个整数，格式为0 k d或1 k。
+0 k d表示在链表第k个结点后插入一个数据域值为d的结点，若k=0则表示表头插入。
+1 k表示删除链表中第k个结点，此时k不能为0。
+注：操作序列中若含有不合法的操作（如在长度为5的链表中删除第8个结点、删除第0个结点等），
+则忽略该操作。n和m不超过100000。
+
+输出格式:
+输出为一行整数，表示实施上述m个操作后的链表，每个整数后一个空格。输入数据保证结果链表不空。
+输入样例：
+5
+1 2 3 4 5
+5
+0 2 8
+0 9 6
+0 0 7
+1 0 
+1 6
+输出样例：
+7 1 2 8 3 5 
+*/
+#include<stdio.h>
+#include<stdlib.h> 
+typedef struct Node{
+    int data;
+    struct Node*next;
+}node;
+typedef node* link;
+link head;
+link rear;
+void Del(int k){
+    link p=head;
+    int count=1;
+    while(p!=NULL&&count<k-1){
+        p=p->next;
+        count++;
+    }
+    link q=p;
+	p=p->next;
+    if(p->next!=NULL){
+        q->next=p->next;
+        free(p);
+    }
+    else{
+        q->next=NULL;
+        free(p);
+    }
+}
+void Push(link n,int x){
+    if(head==NULL){
+        head=n;
+        rear=n;
+        n->data=x;
+        rear->next=NULL;
+    }
+    else{
+        rear->next=n;
+        rear=n;
+        n->data=x;
+        rear->next=NULL;
+    }
+}
+void Insert(link tmp,int k,int d){
+    if(k==0){
+        tmp->data=d;
+        tmp->next=head;
+        head=tmp;
+    }
+    else{
+        link p=head;
+        while(k-1>0){
+            p=p->next;
+            k--;
+        }
+        tmp->next=p->next;
+        p->next=tmp;
+        tmp->data=d;
+    }
+}
+int main(){
+    int n=0,i=0;
+    link p;
+    int m=0;
+    int x=0,operation=0,k=0,d=0;
+    scanf("%d",&n);
+    for(i=0;i<n;i++) {
+        link root=(link)malloc(sizeof(struct Node));
+        scanf("%d",&x);
+        Push(root,x);
+    }
+    scanf("%d",&m);
+    for(i=0;i<m;i++){
+    	scanf("%d",&operation);
+    	if(operation==0){
+			scanf("%d",&k);
+            scanf("%d",&d);
+			if(k>=0&&k<=n){
+			    link tmp=(link)malloc(sizeof(struct Node));
+			    Insert(tmp,k,d);
+			    n++;
+            }
+		}
+		if(operation==1){
+			scanf("%d",&k);
+			if(k>0&&k<=n){
+				Del(k);
+				n--;
+			}
+		}
+	}
+	p=head;
+	while(p!=NULL){
+	    printf("%d ",p->data);
+	    p=p->next;
+    }
+    return 0;
+}

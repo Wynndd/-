@@ -1,0 +1,103 @@
+//队列的基本操作
+/*给定一个初始为空的队列和一系列入队、出队操作，请编写程序输出每次出队的元素。
+队列的元素值均为整数。
+
+输入格式:
+输入第1行为1个正整数n，表示操作个数；
+接下来n行，每行表示一个操作，格式为1 d或0。1 d表示将整数d入队，0表示出队。n不超过20000。
+
+输出格式:
+按顺序输出每次出队的元素，每个元素一行。若某出队操作不合法（如在队列空时出队），
+则对该操作输出invalid。
+输入样例:
+7
+1 1
+1 2
+0
+0
+0
+1 3
+0
+输出样例:
+1
+2
+invalid
+3*/
+
+#include<stdio.h>
+#include<stdlib.h>
+//#define maxsize 20000
+//typedef int int;
+typedef struct QNode *queue;
+struct Node{
+	int Data;
+	struct Node *next;
+};
+struct QNode{
+	struct Node *rear;//tail
+	struct Node *front;
+};
+queue CreateQueue(){
+	queue s;
+	s=(struct QNode*)malloc(sizeof(struct QNode));
+	s->front=s->rear=0;
+	return s;
+}
+/*bool IsEmpty(queue Q){
+	return(Q->front==NULL);
+}*/
+void PushQ(int item,queue s){
+	struct Node *TmpCell;
+	TmpCell=(struct Node*)malloc(sizeof(struct Node));
+	TmpCell->Data=item;
+    if(s->front==NULL){
+		s->front=TmpCell;
+        s->rear=TmpCell;
+    }else{
+        s->rear->next=TmpCell;
+        s->rear=TmpCell;
+    }
+	//TmpCell->next=*(s->rear)->next;
+	/*s->rear->next=TmpCell;
+	s->rear=TmpCell;*/
+}
+int DeleteQ(queue s){
+	struct Node *FrontCell;
+	int FrontElem;
+	if(s->front==NULL)
+		return NULL;
+	else{
+		FrontCell=s->front;
+		if(s->front==s->rear)
+			s->front=s->rear=NULL;
+		else
+			s->front=s->front->next;
+		FrontElem=FrontCell->Data;
+		free(FrontCell);
+		return FrontElem;
+	}
+}
+int main(){
+	int n,item,operation,elemen;
+    int jud=0;
+	queue s=CreateQueue();//creat the queue node
+	scanf("%d",&n);
+	while(n--){
+        /*if(jud==0){
+
+        }*/
+		scanf("%d",&operation);
+		if(operation==1){
+			scanf("%d",&item);
+			PushQ(item,s);
+		}
+		if(operation==0){
+			elemen=DeleteQ(s);
+			if(elemen==NULL)
+				printf("invalid\n");
+			else
+				printf("%d\n",elemen);
+		}
+	}
+	return 0;
+}

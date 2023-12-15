@@ -1,0 +1,107 @@
+/*单源最短路径 (10 分)
+请编写程序求给定正权有向图的单源最短路径长度。图中包含n个顶点，编号为0至n-1，以顶点0作为源点。
+
+输入格式:
+输入第一行为两个正整数n和e，分别表示图的顶点数和边数，其中n不超过20000，e不超过1000。接下来e行表示每条边的信息，每行为3个非负整数a、b、c，其中a和b表示该边的端点编号，c表示权值。各边并非按端点编号顺序排列。
+
+输出格式:
+输出为一行整数，为按顶点编号顺序排列的源点0到各顶点的最短路径长度（不含源点到源点），每个整数后一个空格。如源点到某顶点无最短路径，则不输出该条路径长度。
+
+输入样例:
+4 4
+0 1 1
+0 3 1
+1 3 1
+2 0 1
+结尾无空行
+输出样例:
+1 1 
+结尾无空行
+*/
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+#define INFINITY 65535
+using namespace std;
+//边结点的结构体 
+struct Edge{
+	int VerAdj;//邻接顶点序号，从0开始编号 注意：单向的图 只有一个点 
+	int cost;//边的权值
+	Edge *link;//指向下一个边结点的指针 
+};
+//顶点表中结点的结构体 
+struct Vertex{
+	int VerName;//顶点名称
+	Edge *adjacent;//边链表的头指针 
+};
+//图结构体 
+struct Graph_List{
+	Vertex *Head;//顶点表头指针，即一个数组存储vertex 
+	int graphsize;//图中当前顶点个数 
+};
+Graph_List CreateGraph(){
+	Graph_List Graph;
+	int e,from,to,weight;
+	cin>>Graph.graphsize;//输入顶点的个数，即n 
+	Graph.Head=new Vertex[20000];
+	for(int i=0;i<Graph.graphsize;i++){//初始化 
+		Graph.Head[i].VerName=i; 
+		Graph.Head[i].adjacent=NULL;
+	}
+	cin>>e;//输入边的个数；
+	for(int i=0;i<e;i++){
+		cin>>from>>to>>weight;//输入新的边的开始点，终点，权值
+		Edge *p=new Edge;
+		p->VerAdj=to;
+		p->cost=weight;
+		p->link=NULL;
+		Edge *q=Graph.Head[from].adjacent;
+		if(q==NULL)//如果这个顶点里没有东西，只需要连p即可 
+			Graph.Head[from].adjacent=p;
+		else{
+			while(q->link!=NULL)
+				q=q->link;
+			q->link=p;
+		}
+	}
+	return Graph;
+}
+void Dijkstra(){
+	int i=0,j=0,u=0,k=0;
+	Graph_List Graph=CreateGraph();
+	int n=Graph.graphsize;
+	int *dist=new int[n],*path=new int[n];//dist为最短路径长度 
+	int *visited=new int[n];
+	for(i=0;i<n;i++){
+		visited[i]=0;//初始化，都没被访问过
+		dist[i]=INFINITY;
+		path[i]=-1;
+	}
+	dist[0]=0;
+	visited[0]=1;
+	Edge *p=Graph.Head[0].adjacent;
+	for(j=0;j<n;j++){
+		while(p!=NULL){
+			k=p->VerAdj;
+			if(visited[k]!=1&&dist[u]+p->cost<dist[k]){
+				dist[k]=dist[u]+p->cost;
+				path[k]=u;
+			}
+			p=p->link;
+		}
+		int ldist=INFINITY;
+		for(i=0;i<n;i++)
+			if(dist[i]>0&&dist[i]<ldist&&visited[i]==0){
+				ldist=dist[i];u=i;
+			}
+		visited[u]=1;
+		p=Graph.Head[u].adjacent;
+	}
+	for(i=1;i<n;i++){
+		if(dist[i]!=INFINITY)cout<<dist[i]<<" ";
+	}
+}
+int main(){
+	Dijkstra();
+	return 0;
+}

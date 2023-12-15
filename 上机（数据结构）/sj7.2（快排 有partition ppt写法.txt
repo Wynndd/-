@@ -1,0 +1,64 @@
+/*快速排序 (10 分)
+给定包含n个元素的整型数组a[1],a[2],...,a[n]，利用快速排序算法对其进行递增排序，请输出排序过程，即每次Partition之后的数组。每次选择所处理的子数组的第一个元素作为基准元素。
+
+输入格式:
+输入为两行，第一行为一个整数n（1<n≤1000），表示数组长度。第二行为n个空格间隔的整数，表示待排序的数组。
+
+输出格式:
+输出为若干行，每行依次输出Partition后的数组，每个元素后一个空格。
+
+输入样例:
+5
+4 5 3 2 1
+输出样例:
+2 1 3 4 5 
+1 2 3 4 5 
+1 2 3 4 5 
+*/
+
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+using namespace std;
+void Swap(int &x,int &y){
+	int tmp=x;
+	x=y;
+	y=tmp;
+}
+int Partition(int *R,int m,int n){//对Rm-Rn进行划分
+	int i=m,j=n+1,key=R[m];
+	while(i<j){
+		i++;//从key右边开始找 
+		while(R[i]<=key&&i<=n)i++;
+		j--;//从末尾开始找 
+		while(R[j]>key)j--;
+		if(i<j)Swap(R[i],R[j]);
+	}
+	Swap(R[m],R[j]);
+	return j;
+}
+void QSort(int *R,int m,int n,int number){
+	if(m<n){
+		int j=Partition(R,m,n);
+		for(int t=0;t<number;t++){
+			cout<<R[t]<<" ";
+		}
+		cout<<endl;
+		QSort(R,m,j-1,number);
+		QSort(R,j+1,n,number);
+	}
+}
+int main(){
+	int n;
+	cin>>n;
+	int *R=new int[20000];
+	for(int i=0;i<n;i++){
+		cin>>R[i];
+	}
+	QSort(R,0,n-1,n);
+	for(int i=0;i<n;i++){
+		cout<<R[i]<<" ";
+	}
+	cout<<endl;
+	return 0;
+}

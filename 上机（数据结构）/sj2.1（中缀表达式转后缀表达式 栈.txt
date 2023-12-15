@@ -1,0 +1,229 @@
+/*表达式求值      （中缀表达式转后缀表达式，用栈）
+给定一个中缀表达式，请编写程序计算该表达式的值。表达式包含+、-、*、\、(、)，
+所有运算均为二元运算，操作数均为正整数，但可能不止一位，不超过5位。
+运算结果为整数，值域为[−2^31,2^31)。
+除法运算结果若为小数则进行截尾取整。若除法运算中除数为0，则输出ILLEGAL。
+
+输入格式:
+输入为一个字符串，表示中缀表达式。
+
+输出格式:
+输出为一个整数，为表达式的值；或者为一个字符串ILLEGAL。
+
+输入样例1:
+5+(10*2)-6
+输出样例1:
+19
+输入样例2:
+8*(999+1)
+输出样例2:
+8000
+输入样例3:
+1+5/(1-1)
+输出样例3:
+ILLEGAL
+*/
+
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+struct Node{
+	char data;
+	struct Node *next;
+	struct Node *pre;
+};
+struct NodeNum{
+	int data;
+	struct NodeNum *next;
+	struct NodeNum *pre;
+};
+typedef struct Node *stack;
+typedef struct NodeNum *stackNum;
+stack CreateStack(){
+	stack s=(stack)malloc(sizeof(struct Node));
+	s->next=s->pre=NULL;
+	return s;
+}
+stackNum CreateStackNum(){
+	stackNum s=(stackNum)malloc(sizeof(struct NodeNum));
+	s->next=s->pre=NULL;
+	return s;
+}
+void push(stack s,char x){
+	stack tmp;
+	tmp=(stack)malloc(sizeof(struct Node));
+	tmp->data=x;
+	if(s->next!=NULL){
+	tmp->next=s->next;
+	s->next->pre=tmp;
+	}
+	s->next=tmp;
+	tmp->pre=s;
+}
+void pushNum(stackNum s,int x){
+	stackNum tmp;
+	tmp=(stackNum)malloc(sizeof(struct NodeNum));
+	tmp->data=x;
+	if(s->next!=NULL){
+	tmp->next=s->next;
+	s->next->pre=tmp;
+	}
+	s->next=tmp;
+	tmp->pre=s;
+}
+void pop(stack s,int sum){
+	stack tmp=s->next;
+	if(sum==1){
+		tmp->next=NULL;
+		tmp->pre=NULL;
+		free(tmp);
+	}
+	else{
+		s->next=tmp->next;
+		tmp->next->pre=s;
+		free(tmp);
+	}
+}
+void popNum(stackNum s,int sum){
+	stackNum tmp=s->next;
+	if(sum==1){
+		tmp->next=NULL;
+		tmp->pre=NULL;
+		free(tmp);
+	}
+	else{
+		s->next=tmp->next;
+		tmp->next->pre=s;
+		free(tmp);
+	}
+}
+int calculate(stackNum s1,char x,int sum1){
+	int tmp1,tmp2,sum=sum1;
+	tmp1=s1->next->data;
+	popNum(s1,sum);
+	sum--;
+	tmp2=s1->next->data;
+	popNum(s1,sum);
+	switch(x){
+		case '+':pushNum(s1,tmp1+tmp2);break;
+		case '-':pushNum(s1,tmp2-tmp1);break;
+		case '*':pushNum(s1,tmp1*tmp2);break;
+		case '/':{
+			if(tmp1==0){
+				printf("ILLEGAL");exit(0);
+			}
+			else pushNum(s1,tmp2/tmp1);
+			break;
+		}
+	}
+	return sum;//返回剩下的字符个数
+}
+int main(){
+	char symbol[2000000];
+	int t=0,sum=0,sum1=0,temp=0,tmp=0;//sum为符号个数
+	stack s=CreateStack();
+	stackNum s1=CreateStackNum();
+	stackNum top;
+	gets(symbol);
+	for(t=0;symbol[t]!='\0';t++){
+		if(symbol[t]=='('||symbol[t]==')'||symbol[t]=='*'||symbol[t]=='/'||symbol[t]=='+'||symbol[t]=='-'){//如果是符号，压入栈
+			switch(symbol[t]){
+				case '(':{//左括号压入栈
+					push (s,'(');
+					sum++;
+					break;
+				}
+				case '*':{//乘号压入栈
+					push(s,'*');
+					sum++;
+					break;
+				}
+				case '/':{//除号压入栈
+					push(s,'/');
+					sum++;
+					break;
+				}
+				case ')':{//弹出直到遇见左括号，把()之间的数全部计算掉
+					while(s->next->data!='('){
+						sum1=calculate(s1,s->next->data,sum1);
+						pop(s,sum);
+						sum--;
+					}
+					pop(s,sum);
+					sum--;
+					break;
+				}
+				case '+':{
+					if(sum==0||(s->next->data!='*'&&s->next->data!='/')){
+						push(s,'+');
+						sum++;
+					}
+					else{
+                        
+						while(1){//如果栈顶符号为*或/则弹出直到+或-在栈顶，或者遇到左括号
+							sum1=calculate(s1,s->next->data,sum1);
+							pop(s,sum);
+							sum--;
+							if(s->next->data=='+'||s->next->data=='-'||sum==0||s->next->data=='('){
+								push(s,symbol[t]);
+								sum++;
+								break;
+							}
+						}	
+						if(s->next->data=='('){//弹出如果遇到左括号，直接把左括号弹出来
+							pop(s,sum);
+							sum--;
+						}
+					}
+					break;
+				}
+				case '-':{//同上
+					if(sum==0||(s->next->data!='*'&&s->next->data!='/')){
+						push(s,symbol[t]);
+						sum++;
+					}
+					else{
+						while(1){
+							sum1=calculate(s1,s->next->data,sum1);
+							pop(s,sum);
+							sum--;
+							if(s->next->data=='+'||s->next->data=='-'||sum==0||s->next->data=='('){
+								push(s,symbol[t]);
+								sum++;
+								break;
+							}
+						}	
+						if(s->next->data=='('){
+							pop(s,sum);
+							sum--;
+						}
+					}
+					break;
+				}
+			}
+		}
+		else{//如果输入的是数字，将字符串转化为数字
+			temp=symbol[t]-'0';//直接转化为数字
+			while(symbol[t+1]!='\0'){//当下一个不是字符串尾
+				if(symbol[t+1]>='0'&&symbol[t+1]<='9'){//如果t下一个还是数字
+					temp=temp*10+symbol[t+1]-'0';
+					t++;
+				}
+				else break;//如果下一个不是数字了，停止
+			}
+			pushNum(s1,temp);//将得到的数字存进存储数字的栈
+			sum1++;//数字个数++
+			if(sum1==1)top=s1->next;
+		}
+	}
+	while(1){
+		if(sum==0)break;
+		else{
+			sum1=calculate(s1,s->next->data,sum1);
+			pop(s,sum);
+			sum--;
+		}
+	}
+	printf("%d",s1->next->data);
+	return 0;
+}

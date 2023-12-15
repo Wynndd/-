@@ -1,0 +1,250 @@
+//不标准 用了assert头文件注意
+//定义队列结构体
+typedef int QElemType;
+//typedef struct BTNode* QElemType;
+typedef struct QNode
+{
+	QElemType data;
+	struct QNode *_pNext;
+}QNode;
+
+typedef struct LQueue
+{
+	QNode *pFront;
+	QNode *pRear;
+}LQueue;
+
+//创建新结点
+static QNode *BuyLQNode(QElemType data)
+{
+	QNode *pLQNode = (QNode *)malloc(sizeof(QNode));
+	if (NULL == pLQNode)
+	{
+		printf("申请空间失败!\n");
+		assert(pLQNode);
+	}
+	pLQNode->data = data;
+	pLQNode->_pNext = NULL;
+
+	return pLQNode;
+}
+
+//初始化队列
+void LQueueInit(LQueue *q)
+{
+	assert(q);
+	q->pFront = q->pRear = NULL;
+}
+
+//入队
+/*判断队中是否有元素
+找到队尾元素
+让新入队的元素链在原先队列的队尾上，更新新的队尾*/
+void LQueuePush(LQueue *q, QElemType data)
+{
+	assert(q);
+	if (NULL == q->pFront)
+	{
+		q->pFront = q->pRear = BuyLQNode(data);
+		return;
+	}
+	q->pRear->_pNext = BuyLQNode(data);
+	q->pRear = q->pRear->_pNext;
+}
+
+//出队
+//这里的出队列采用是让队头元素不断后移，刷新队头元素，这样优化时间效率
+void LQueuePop(LQueue *q)
+{
+	assert(q);
+	QNode *pDel;
+	if (NULL == q->pFront)
+	{
+		return;
+	}
+
+	if (q->pFront == q->pRear)
+	{
+		q->pRear = NULL;
+	}
+
+	pDel = q->pFront;
+	q->pFront = q->pFront->_pNext;
+	free(pDel);
+}
+
+//返回队头元素
+QElemType LQueueTop(LQueue *q)
+{
+	assert(q);
+	return q->pFront->data;
+}
+
+//返回队尾元素
+QElemType LQueueBack(LQueue *q)
+{
+	assert(q);
+	return q->pRear->data;
+}
+
+//计算队列长度
+/*定义一个变量count
+将队列从头到尾遍历，每访问一个元素count加1一下
+最后count的值就是队列长度*/
+int LQueueSize(LQueue *q)
+{
+	int count = 0;
+	QNode *pCur;
+	assert(q);
+	pCur = q->pFront;
+	while (pCur)
+	{
+		pCur = pCur->_pNext;
+		count++;
+	}
+	return count;
+}
+
+//队列判空操作
+int LQueueEmpty(LQueue *q)
+{
+	return NULL == q->pFront;
+}
+
+
+
+
+//完整代码：
+/*****************************************/
+//LQueue.h
+
+typedef int QElemType;
+//typedef struct BTNode* QElemType;
+typedef struct QNode
+{
+	QElemType data;
+	struct QNode *_pNext;
+}QNode;
+
+typedef struct LQueue
+{
+	QNode *pFront;
+	QNode *pRear;
+}LQueue;
+
+
+//初始化
+void LQueueInit(LQueue *q);
+
+//入队列
+void LQueuePush(LQueue *q, QElemType data);
+
+//出队列
+void LQueuePop(LQueue *q);
+
+//返回队头元素
+QElemType LQueueTop(LQueue *q);
+
+//返回返回队列长度
+int LQueueSize(LQueue *q);
+
+//队列是否为空
+int LQueueEmpty(LQueue *q);
+
+
+/************************************************/
+//LQueue.c
+
+#include <stdlib.h>
+#include <assert.h>
+#include <stdio.h>
+
+//创建新结点
+static QNode *BuyLQNode(QElemType data)
+{
+	QNode *pLQNode = (QNode *)malloc(sizeof(QNode));
+	if (NULL == pLQNode)
+	{
+		printf("申请空间失败!\n");
+		assert(pLQNode);
+	}
+	pLQNode->data = data;
+	pLQNode->_pNext = NULL;
+
+	return pLQNode;
+}
+
+//初始化
+void LQueueInit(LQueue *q)
+{
+	assert(q);
+	q->pFront = q->pRear = NULL;
+}
+
+//入队列
+void LQueuePush(LQueue *q, QElemType data)
+{
+	assert(q);
+	if (NULL == q->pFront)
+	{
+		q->pFront = q->pRear = BuyLQNode(data);
+		return;
+	}
+	q->pRear->_pNext = BuyLQNode(data);
+	q->pRear = q->pRear->_pNext;
+}
+
+//出队列
+void LQueuePop(LQueue *q)
+{
+	assert(q);
+	QNode *pDel;
+	if (NULL == q->pFront)
+	{
+		return;
+	}
+
+	if (q->pFront == q->pRear)
+	{
+		q->pRear = NULL;
+	}
+
+	pDel = q->pFront;
+	q->pFront = q->pFront->_pNext;
+	free(pDel);
+}
+
+//返回队头元素
+QElemType LQueueTop(LQueue *q)
+{
+	assert(q);
+	return q->pFront->data;
+}
+
+//返回队尾元素
+QElemType LQueueBack(LQueue *q)
+{
+	assert(q);
+	return q->pRear->data;
+}
+
+//返回返回队列长度
+int LQueueSize(LQueue *q)
+{
+	int count = 0;
+	QNode *pCur;
+	assert(q);
+	pCur = q->pFront;
+	while (pCur)
+	{
+		pCur = pCur->_pNext;
+		count++;
+	}
+	return count;
+}
+
+//队列是否为空
+int LQueueEmpty(LQueue *q)
+{
+	return NULL == q->pFront;
+}

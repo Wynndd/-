@@ -1,0 +1,118 @@
+/*二叉树查找结点及父结点 (5 分)
+编写程序在二叉树中查找给定结点及父结点。二叉树结点的数据域值不等于0的整数。
+
+输入格式:
+输入第1行为一组用空格间隔的整数，表示带空指针信息的二叉树先根序列，其中空指针用0表示。
+例如1 5 8 0 0 0 6 0 0表示如下图的二叉树。第2行为整数m，表示查询个数。
+接下来m行，每行为一个不等于0的整数K，表示要查找的结点的数据值。
+m不超过100，二叉树结点个数不超过150000，高度不超过6000。
+输入数据保证二叉树各结点数据值互不相等。
+
+输出格式:
+输出为m行，每行1个整数，表示被查找结点K的父结点数据值，
+若二叉树中无结点K或结点K无父结点，则输出0。
+
+输入样例:
+1 5 8 0 0 0 6 0 0
+3
+8
+1
+6
+结尾无空行
+输出样例:
+5
+0
+1
+结尾无空行*/
+
+//这里的父亲函数是对的 
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+struct TreeNode{
+	int data;
+	struct TreeNode* left;
+	struct TreeNode* right;
+};
+typedef struct TreeNode *BinTree;
+BinTree CreateTree(){
+	char put;
+	int ch;
+	scanf("%d",&ch);
+	BinTree root; 
+	if(ch==0){
+		root=NULL;
+		return root;
+	}
+	else{
+		root=(BinTree)malloc(sizeof(struct TreeNode));
+		root->data=ch;
+		root->left=CreateTree();
+		root->right=CreateTree();
+		return root;
+	}
+}
+void PreOrderTravel(BinTree bt){
+	if(bt!=NULL)printf("%d ",bt->data);
+	if(bt->left!=NULL)PreOrderTravel(bt->left);
+	if(bt->right!=NULL)PreOrderTravel(bt->right);
+}
+//FATHER函数
+BinTree Father(BinTree t,BinTree p){
+//p为给定结点；t指向root，搜索p的父亲； q指向p的父亲 
+	BinTree q;
+	if(t==NULL||p==NULL||t==p){
+		return NULL;
+	}
+	if(t->left==p||t->right==p){
+	//	printf("%d\n",t->data);
+		return t;
+	}
+	q=Father(t->left,p);
+	if(q!=NULL){
+	//	printf("%d\n",q->data);
+		return q;
+	}
+	else{
+		q=Father(t->right,p);
+	//	printf("%d\n",q->data);
+		return q;
+	}
+}
+BinTree Find(int x,BinTree t){
+	BinTree q;
+	if(t==NULL||t->data==x){
+		q=NULL;
+		if(t==NULL)return NULL;
+		if(t->data==x){
+			q=t;
+			return q;
+		}
+	}
+	else{
+		q=Find(x,t->left);
+//注意return q的位置！！！！！
+		if(q!=NULL)return q;
+		q=Find(x,t->right);
+	}
+}
+int main(){
+	BinTree root;
+	root=CreateTree();
+	BinTree temp;
+	BinTree father;
+	int timer=0;
+	int item=0;
+	scanf("%d",&timer);
+	for(int i=0;i<timer;i++){
+		temp=NULL;
+		father=NULL;
+		scanf("%d",&item);
+		temp=Find(item,root);
+	//	printf("$%d\n",temp->data);
+		father=Father(root,temp);
+		if(father==NULL)printf("0\n");
+		else printf("%d\n",father->data);
+	}
+	return 0;
+} 

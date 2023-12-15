@@ -1,0 +1,134 @@
+/*最大边 (10 分)
+给定一个包含n个顶点的无向正权连通图，顶点编号为1到n。
+0-请编写程序计算其最小支撑树中任意两个顶点间路径中，权值最大的边的权值。
+
+输入格式:
+第一行为2个整数n和m，n为图中顶点个数，m为边的条数，n≤2000，m≤30000。接下来m行，每行3个整数a、b、c，表示顶点a和顶点b之间有一条权值为c的边，c不超过65535。随后一行为一个整数T，表示查询数目。接下来T行，每行2个整数a和b，表示查询最小支撑树中顶点a和b间路径中的最大边。
+
+输出格式:
+对于每个查询输出一行，为1个整数，表示最小支撑树两个顶点间的路径中的最大边的权值。
+
+输入样例:
+8 20
+2 7 44181
+1 2 36877
+3 6 2506
+2 8 46829
+7 1 2843
+4 5 40699
+1 3 15911
+7 6 15553
+5 6 22541
+8 6 62008
+3 4 62009
+5 7 53337
+5 3 12157
+4 6 10112
+1 5 22574
+3 7 28993
+4 7 53536
+6 1 951
+4 2 31411
+7 8 31020
+10
+7 5
+5 4
+4 2
+7 2
+3 4
+1 5
+1 5
+7 3
+6 1
+4 1
+输出样例:
+12157
+12157
+31411
+31411
+10112
+12157
+12157
+2843
+951
+10112
+*/
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+#define INFINITY 65535
+using namespace std;
+int maxcost[2000][2000];
+int edge[2000][2000];
+struct LV{
+	int Lowcost;//权值 
+	int Vex;//连接到mst上的点 
+};
+void MST(int n,int m){
+	struct LV *closedge=new LV[n];
+	int from,to,weight;
+	for(int i=0;i<n;i++){//初始化 
+		for(int j=0;j<n;j++){
+			edge[i][j]=INFINITY;
+		}
+	}
+	for(int i=0;i<m;i++){
+		cin>>from;
+		cin>>to;
+		cin>>weight;
+		edge[from-1][to-1]=weight;
+		edge[to-1][from-1]=weight;
+	}
+	for(int i=0;i<n;i++){//初始化结点0，即第一个结点
+		closedge[i].Lowcost=edge[0][i];
+		closedge[i].Vex=0;//目前连接的都是定点0 
+	}
+	closedge[0].Vex=-1;//顶点0进入集合U
+	
+	for(int i=0;i<n-1;i++){
+		int min=INFINITY;//设置最小值
+		int v=0;
+		for(int j=0;j<n;j++){//初始化 
+			if(closedge[j].Vex!=-1&&closedge[j].Lowcost<min){//求当前权值最小的边和该边的终点v 
+				v=j;//记录v为最小点j--为这个i目前的终点 
+				min=closedge[j].Lowcost;//目前最小边是j上的 
+			}
+		}
+		
+		if(v!=0){//如果v==0，则找不到对应的点 
+			int u=closedge[v].Vex;
+		//	cout<<"!"<<u+1<<endl;
+			maxcost[u][v]=maxcost[v][u]=closedge[v].Lowcost;
+			for(int i=0;i<n;i++){
+				if(closedge[i].Vex==-1){//遍历前面已经进入mst的点
+					if(maxcost[i][u]<maxcost[u][v])
+						maxcost[v][i]=maxcost[i][v]=maxcost[u][v];
+					else
+						maxcost[v][i]=maxcost[i][v]=maxcost[i][u];
+				}
+			}
+			closedge[v].Lowcost=0;
+			closedge[v].Vex=-1;//变成图中的一个点了
+			for(int j=0;j<n;j++){//将更多能够到的边的数据加入，注意这个时候v已经不是0了，能够到更多点了 
+				if(closedge[j].Vex!=-1&&edge[v][j]<closedge[j].Lowcost){
+					closedge[j].Lowcost=edge[v][j];//寻找另外一个更小的边 
+					closedge[j].Vex=v;
+				}
+			}
+		}
+		
+	}
+	int T;
+	cin>>T;//T为查询数目
+	int a,b;
+	for(int i=0;i<T;i++){//查询ab路径最大边 
+		cin>>a>>b;
+		cout<<maxcost[a-1][b-1]<<endl;
+	}
+}
+int main(){
+	int n,m;
+	cin>>n>>m;
+	MST(n,m);
+	return 0;
+}

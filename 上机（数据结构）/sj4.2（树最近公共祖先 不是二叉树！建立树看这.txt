@@ -1,0 +1,143 @@
+/*树最近公共祖先 (15 分)
+已知树结点为互不相等且不等于0的整数。请编写程序找出非空树中两个结点的最近公共祖先。
+例如对于图1(a)所示的树t，结点1和2的最近公共祖先是5；结点2和4的最近公共祖先是8。
+输入格式:
+每个测试点包含多组数据，第1行为一个正整数T，表示数组组数。
+每组数据为2行，第1行为一组用空格间隔的整数，个数不超过100个，
+表示带空指针信息的二叉树先根序列。其中空指针信息用0表示。
+第2行为空格间隔的两个互不相等的整数A和B，表示给定的两个结点值，保证A和B肯定在输入的树中。
+
+注1：我们已知二叉树与其自然对应的树相比，二叉树中结点的左孩子对应树中结点的左孩子，
+二叉树中结点的右孩子对应树中结点的右兄弟。
+进而我们可以利用“带空指针信息的先根序列构建二叉树”的方法来构建其对应的树的左孩子-右兄弟
+存储结构。如8 5 1 0 6 0 2 0 0 3 4 0 0 7 0 0 0对应图1(a)所示的树，
+1 2 0 3 0 4 0 0 0对应如图1(b)所示的树。
+
+输出格式:
+对每组数据输出一行，为一个整数，表示A和B的最近公共祖先结点的值。
+
+输入样例：
+2
+8 5 1 0 6 0 2 0 0 3 4 0 0 7 0 0 0
+1 2
+8 5 1 0 6 0 2 0 0 3 4 0 0 7 0 0 0
+2 4
+输出样例：
+5
+8
+*/
+
+#include<stdio.h>
+using namespace std;
+struct node {
+    int data;
+    node* firstChild;
+    node* nextBrother;
+};
+node* CreateTree() 
+{
+    int k;
+    scanf("%d", &k);
+    if (k == 0) return NULL;
+    node *t = new node;
+    t->data = k;
+    t->firstChild = CreateTree();
+    t->nextBrother = CreateTree();
+    return t;
+}
+void Del(node* root)
+{
+    if (root == NULL) return;
+    node* p = root->firstChild;
+    node* next;
+    while (p != NULL){
+        next = p->nextBrother;
+        Del(p);
+        p = next;
+    }
+    delete root;
+}
+//我写的开始
+int patha[100],pathb[100];
+int flag1=0,flag2=0;
+void PreOrdera(node* t,node* bt,int current){
+	if(flag1==0){
+		if(t==bt){
+			flag1=1;
+			patha[current]=t->data;
+			return;
+		}
+		patha[current]=t->data;
+		node *child;
+		child=t->firstChild;
+		while(child!=NULL){
+			PreOrdera(child,bt,current+1);
+			child=child->nextBrother;
+		}
+	}
+}
+void PreOrderb(node* t,node* bt,int current){
+	if(flag2==0){
+		if(t==bt){
+			flag2=1;
+			pathb[current]=t->data;
+			return;
+		}
+		pathb[current]=t->data;
+		node *child;
+		child=t->firstChild;
+		while(child!=NULL){
+			PreOrderb(child,bt,current+1);
+			child=child->nextBrother;
+		}
+	}
+}
+node* FindTarget(node* t,int a){
+	node* result=NULL;
+	if(t==NULL){
+		return NULL;
+	}
+	if(t->data==a){
+		result=t;
+		return result;
+	}
+    node* p=t->firstChild;
+	while(p!=NULL){
+		result=FindTarget(p,a);
+		if(result!=NULL)
+            return result; 
+		p=p->nextBrother;
+	}
+    return NULL;
+}
+int LeastCommonAncestors(node* root, int a, int b){
+	int i=0;
+	node* tmp1=root,*tmp2=root,*temp1=root,*temp2=root;
+	tmp1=FindTarget(root,a);
+	tmp2=FindTarget(root,b);
+	PreOrdera(temp1,tmp1,0);
+	PreOrderb(temp2,tmp2,0);
+    while(1){
+        if(patha[i]==pathb[i]){
+            i++;
+        }
+        else break;
+}
+	flag1=0;
+	flag2=0;
+//    printf("!!%d\n",patha[i-1]);
+	return patha[i-1];
+}
+//我写的截止
+int main() 
+{
+    int a, b, T;
+    scanf("%d", &T);
+    while(T--){
+        node *root = CreateTree();
+        scanf("%d %d", &a, &b);
+        printf("%d\n", LeastCommonAncestors(root, a, b));
+        Del(root);
+    }
+    return 0;
+}

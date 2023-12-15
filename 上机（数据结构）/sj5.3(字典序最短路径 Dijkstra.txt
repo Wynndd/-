@@ -1,0 +1,152 @@
+/*最少点字典序最短路径 (10 分)
+给定一个正权有向图，图中包含n个顶点，编号为0至n-1。
+以顶点0作为源点，请编写程序求顶点0到各顶点的最短路径。
+若顶点0到某顶点存在多条最短路径，则输出经过顶点最少的那条路径，
+例如图1(a)中0到4的经过顶点最少的最短路径为0 - 3 - 4。
+若存在多条最短路径且其经过顶点个数相等，则输出字典序最小者。
+例如图1(b)中0到5的满足条件的最短路径为0 - 2 - 5。
+注：字典序，即对象在字典中的顺序。对于两个数字序列，从第一个数字开始比较，当某一个位置的数字不同时，该位置数字较小的序列，字典序较小，例如1 2 3 9比1 2 4 5小，1 2 8 9比1 2 10 3小。
+
+输入格式:
+输入第一行为两个正整数n和e，分别表示图的顶点数和边数，其中n不超过20000，e不超过20000。接下来e行表示每条边的信息，每行为3个非负整数a、b、c，其中a和b表示该边的端点编号，c表示权值。各边并非按端点编号顺序排列。
+
+输出格式:
+输出为若干行由“->”间隔的数字序列，每行为源点0到某顶点的满足条件的最短路径，如源点到某顶点无最短路径，则不输出该条路径。各条路径按终点的递增顺序输出，源点到源点的最短路径无需输出。
+
+输入样例:
+6 7
+0 1 1
+1 4 2
+4 5 3
+0 3 4
+3 5 2
+0 2 5
+2 5 1
+输出样例:
+0->1
+0->2
+0->3
+0->1->4
+0->2->5
+*/
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+#define INFINITY 65535
+using namespace std;
+//边结点的结构体 
+struct Edge{
+	int VerAdj;//邻接顶点序号，从0开始编号 注意：单向的图 只有一个点 
+	int cost;//边的权值
+	Edge *link;//指向下一个边结点的指针 
+};
+//顶点表中结点的结构体 
+struct Vertex{
+	int VerName;//顶点名称
+	Edge *adjacent;//边链表的头指针 
+};
+//图结构体 
+struct Graph_List{
+	Vertex *Head;//顶点表头指针，即一个数组存储vertex 
+	int graphsize;//图中当前顶点个数 
+};
+void Dijkstra(){
+	Graph_List Graph; 
+	int e,from,to,weight;
+	
+	cin>>Graph.graphsize;//输入顶点的个数，即n
+	int n=Graph.graphsize;
+	int i=0,j=0,u=0,k=0;
+	Graph.Head=new Vertex[20000];
+	int *dist=new int[n],*path=new int[n];//dist为最短路径长度 
+	int *visited=new int[n];
+	int *count=new int[n];//数到底经过了多少个结点
+	for(i=0;i<n;i++){//初始化 
+		Graph.Head[i].VerName=i; 
+		Graph.Head[i].adjacent=NULL;
+		visited[i]=0;//初始化，都没被访问过
+		dist[i]=INFINITY;
+		path[i]=-1;
+		count[i]=0;
+	}
+	cin>>e;//输入边的个数；
+	for(i=0;i<e;i++){
+		cin>>from>>to>>weight;//输入新的边的开始点，终点，权值 即a,b,c 
+		Edge *p=new Edge;
+		p->VerAdj=to;
+		p->cost=weight;
+//		p->link=NULL;
+		Edge *q=Graph.Head[from].adjacent;
+		p->link=q;
+		Graph.Head[from].adjacent=p;
+	}
+	//创建图完毕，开始算法
+	dist[0]=0;
+	visited[0]=1;
+	Edge *p=Graph.Head[0].adjacent;
+	for(j=0;j<n;j++){
+		while(p!=NULL){
+			k=p->VerAdj;
+			if(visited[k]!=1&&dist[u]+p->cost<dist[k]){//路程更短 
+				dist[k]=dist[u]+p->cost;
+				path[k]=u;
+				count[k]=count[u]+1; 
+			}
+			else if(visited[k]!=1&&dist[u]+p->cost==dist[k]){
+				if(count[u]+1<count[k]){//通过u之后再到k，路过的结点更少了
+					dist[k]=dist[u]+p->cost;
+						path[k]=u;
+						count[k]=count[u]+1;
+				}
+				else if(count[u]+1==count[k]){//通过path数组往前找到源点到k的最短路，以及源点到u再通过边uk到k的最短路，比较字典序
+					int top1=path[k];
+					int top2=u;
+					int top1pre=top1;
+					int top2pre=top2;
+					while(top1!=-1&&top2!=-1&&top1!=top2){//往前推，直到path上有数相等
+						top1pre=top1;
+						top2pre=top2;
+						top1=path[top1pre];
+						top2=path[top2pre];
+					}
+					if(top1==top2&&top1pre>top2pre){//如果条件成立，path原本就相等不用变，count也相等不用变，只需要变更线路即可 
+						path[k]=u;
+					}
+				}
+			}
+			p=p->link;
+		}
+		//确定边和下一个u 
+		int ldist=INFINITY;
+		for(i=0;i<n;i++)
+			if(dist[i]>0&&dist[i]<ldist&&visited[i]==0){
+				ldist=dist[i];u=i;
+			}
+		visited[u]=1;
+		p=Graph.Head[u].adjacent;
+	}
+	
+	int a[20001];
+	for(i=1;i<n;i++){
+		int counter=0;//计数器
+		int tmp=i; 
+		if(dist[tmp]!=INFINITY){
+			while(tmp!=-1){
+				a[counter]=tmp;
+				counter++;
+				tmp=path[tmp];
+			}
+			counter--;//减去是-1的那个
+			while(counter>0){
+				cout<<a[counter]<<"->";
+				counter--;
+			}
+			cout<<a[counter];
+			cout<<endl;	
+		}
+	}
+}
+int main(){
+	Dijkstra();
+	return 0;
+}

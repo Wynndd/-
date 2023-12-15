@@ -1,0 +1,14 @@
+//改良版冒泡排序 排R[n] 
+int bound,j,t;
+int e;
+bound=n-1;//一共n个数
+while(bound){
+	t=0;//t用于记录一趟冒泡最后交换的位置
+	for(j=0;j<bound;j++){
+		if(R[j]>R[j+1]){
+			e=R[j];R[j]=R[j+1];R[j+1]=e;
+			t=j;
+		}
+		bound=t;
+	} 
+}

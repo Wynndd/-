@@ -1,0 +1,115 @@
+/*重建二叉树 (10 分)（利用中根序列和后根序列创建二叉树
+给定非空二叉树的中根序列和后根序列，请编写程序创建该二叉树，计算其高度和先根序列，
+最后删除该二叉树；如给定的中根和后根序列不合法，则亦能识别。
+
+输入格式:
+输入包含多组数据（不超过10组），每组为两行字符串，第一行表示某二叉树的后根序列，
+第二行表示其中根序列。结点的值均为A-Z的大写字母，故二叉树结点个数不超过26，
+且保证输入的两个序列都是结点的全排列，但不一定是合法的中根和后根序列。
+输入保证不是空二叉树。
+
+输出格式:
+对于每组数据，如果输入的序列不合法（不是同一棵树的中根序列和后根序列），则输出INVALID；
+若输入序列合法，输出为两行，第一行为一个整数，表示该二叉树的高度，
+第二行为一个字符串，表示该二叉树的先根序列。
+
+输入样例1:
+CEFDBHGA
+CBEDFAGH
+CBEDFAGH
+CEFDBHGA
+BCA 
+CAB
+输出样例1:
+3
+ABCDEFGH
+INVALID
+INVALID
+*/
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+struct TreeNode{
+	char data;
+	struct TreeNode* left;
+	struct TreeNode* right;
+};
+typedef struct TreeNode *BinTree;
+int sign=0;
+BinTree CreateTree(char *mid,char *post,int length){
+	int flag=0;
+	if(length==0){
+		return NULL;
+	}
+	BinTree root=(BinTree)malloc(sizeof(struct TreeNode)); 
+	int i=0,tmp=0;
+	for(i=0;i<length;i++){
+		if(post[length-1]==mid[i]){
+			tmp=i;
+			flag=1;
+			break; 
+		}
+	}
+	if(flag==0){
+		sign=1;
+		return NULL;
+	}
+	else{
+		root->data=post[length-1];
+		root->right=CreateTree(&mid[tmp+1],&post[tmp],length-tmp-1);
+		root->left=CreateTree(mid,post,tmp);
+		return root;
+	}
+}
+void PreOrderTravel(BinTree bt){
+	if(bt!=NULL)printf("%c",bt->data);
+	if(bt->left!=NULL)PreOrderTravel(bt->left);
+	if(bt->right!=NULL)PreOrderTravel(bt->right);
+}
+void DeleteTree(BinTree bt){
+	if(bt==NULL)return;
+	DeleteTree(bt->left);
+	DeleteTree(bt->right);
+	free(bt);
+}
+int Height(BinTree bt){
+	if(bt==NULL){
+		return 0;
+	}
+	else{
+		if(Height(bt->left)>Height(bt->right)){
+			return (Height(bt->left)+1);
+		}
+		else {
+			return (Height(bt->right)+1);
+		}
+	}
+}
+int main(){
+	char mid[10][10000],post[10][10000];
+	BinTree root;
+	int i=0,j=0,height=0,length=0;
+	while(j<10){
+		gets(post[j]);
+		gets(mid[j]);
+		if(!*post[j])break;
+		j++;
+	}
+	for(i=0;i<j;i++){
+		sign=0;
+		length=strlen(post[i]);
+		root=CreateTree(mid[i],post[i],length);
+		if(sign==0){
+			height=Height(root);
+			printf("%d\n",height-1);
+			PreOrderTravel(root);
+			printf("\n");
+		}
+		else{
+			printf("INVALID\n");
+		}
+		DeleteTree(root);
+	}
+	return 0;
+}

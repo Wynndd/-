@@ -1,0 +1,107 @@
+/*图的创建 (5 分)
+请编写程序创建一个有向图。有向图中包含n个顶点，编号为0至n-1。
+
+输入格式:
+输入第一行为两个正整数n和e，分别表示图的顶点数和边数，其中n不超过20000，e不超过20000。接下来e行表示每条边的信息，每行为3个非负整数a、b、c，其中a和b表示该边的端点编号，c表示权值。各边并非按端点编号顺序排列。
+
+输出格式:
+按顶点编号递增顺序输出每个顶点引出的边，每个顶点占一行，若某顶点没有引出边，则不输出。每行表示一个顶点引出的所有边，格式为a:(a,b,w)……，表示有向边a->b的权值为w，a引出的多条边按编号b的递增序排列。
+
+输入样例:
+7 7
+0 1 5
+0 3 7
+0 6 6
+1 2 4
+2 5 1
+3 5 3
+6 5 4
+输出样例:
+0:(0,1,5)(0,3,7)(0,6,6)
+1:(1,2,4)
+2:(2,5,1)
+3:(3,5,3)
+6:(6,5,4)*/
+
+#include<iostream>
+#include<stdlib.h>
+#include<string.h>
+using namespace std;
+//边结点的结构体 
+struct Edge{
+	int VerAdj;//邻接顶点序号，从0开始编号 注意：单向的图 只有一个点 
+	int cost;//边的权值
+	Edge *link;//指向下一个边结点的指针 
+};
+//顶点表中结点的结构体 
+struct Vertex{
+	int VerName;//顶点名称
+	Edge *adjacent;//边链表的头指针 
+};
+//图结构体 
+struct Graph_List{
+	Vertex *Head;//顶点表头指针，即一个数组存储vertex 
+	int graphsize;//图中当前顶点个数 
+};
+Graph_List CreateGraph(){
+	Graph_List Graph;
+	int e,from,to,weight;
+	cin>>Graph.graphsize;//输入顶点的个数，即n 
+	Graph.Head=new Vertex[20001];
+	for(int i=0;i<Graph.graphsize;i++){//初始化 
+		Graph.Head[i].VerName=i; 
+		Graph.Head[i].adjacent=NULL;
+	}
+	cin>>e;//输入边的个数；
+	for(int i=0;i<e;i++){
+		cin>>from>>to>>weight;//输入新的边的开始点，终点，权值
+		Edge *p=new Edge;
+		p->VerAdj=to;
+		p->cost=weight;
+		p->link=NULL;
+		Edge *q=Graph.Head[from].adjacent;
+		if(q==NULL)//如果这个顶点里没有东西，只需要连p即可 
+			Graph.Head[from].adjacent=p;
+		else{
+			if(q->link==NULL){//如果q是头 
+				if(q->VerAdj>to){
+					p->link=q;
+					Graph.Head[from].adjacent=p;
+				}
+				else q->link=p;
+			}
+			else{//如果q不是头，要p插入到中间去
+				if(q->VerAdj>to){
+					p->link=q;
+					Graph.Head[from].adjacent=p;
+				}
+				else{
+				while(q->link!=NULL&&q->link->VerAdj<to)
+					q=q->link;
+				if(q->link!=NULL)p->link=q->link;
+				q->link=p;
+				}
+			}
+			/*else{
+				if(q->link!=NULL)p->link=q->link;
+				q->link=p;
+			}*/ 
+		}
+	}
+	return Graph;
+}
+int main(){
+	Graph_List Graph=CreateGraph();
+	for(int i=0;i<Graph.graphsize;i++){
+		if(Graph.Head[i].adjacent!=NULL){
+			cout<<Graph.Head[i].VerName<<":";
+			Edge *q=Graph.Head[i].adjacent;
+			while(q!=NULL){
+				cout<<"("<<Graph.Head[i].VerName<<","<<q->VerAdj<<","<<q->cost<<")";
+				q=q->link;
+			}
+			cout<<endl;
+		}
+	}
+	return 0;
+}

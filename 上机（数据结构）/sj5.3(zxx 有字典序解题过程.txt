@@ -1,0 +1,134 @@
+#include<iostream>
+using namespace std;
+#include<stdlib.h>
+#define INF 0x3f3f3f3f
+
+typedef struct edge{
+	int VerAdj;//邻接顶点序号
+	int weight;//边权重 
+	struct edge *next;
+}Edge,*pEdge;
+typedef struct vertex{
+	int VerName;//顶点名称 
+	pEdge adjacent;//边链表头指针 
+}Vertex; 
+
+Vertex Head[20001];//顶点数组
+int dist[20001];//最短路径值
+int path[20001];//路径中上一个结点
+int s[20001];//是否被访问过
+int c[20001];//路径中结点个数
+
+void CreateGraph(int m,int n){
+	int from,to,weight;
+	for(int i=0;i<m;i++){
+		Head[i].VerName=i;		
+		Head[i].adjacent=NULL;
+		dist[i]=INF;
+		path[i]=-1;
+		c[i]=0;
+		s[i]=0;
+	}
+	for(int i=0;i<n;i++){
+		cin>>from>>to>>weight;
+		pEdge p=new Edge;
+		p->VerAdj=to;
+		p->weight=weight;
+		pEdge q=Head[from].adjacent;
+		p->next=q;
+		Head[from].adjacent=p;
+	}
+}
+
+void Dijkstra(Vertex* head,int m){
+	dist[0]=0;
+	s[0]=1;
+	pEdge p=head[0].adjacent;
+	int u=0;//u为即将要访问的结点
+	
+	for(int i=0;i<m;i++){
+		//遍历邻接链表中的一行 
+		while(p!=NULL){
+			int k=p->VerAdj;//u k(p) 
+				if(dist[u]+p->weight<dist[k]){//路径更短 更新 
+					dist[k]=dist[u]+p->weight;
+					path[k]=u;
+					c[k]=c[u]+1;
+				}
+				else if(dist[u]+p->weight==dist[k]){//路径相同 
+					if(c[k]>c[u]+1){//经过结点数更少 更新 
+						path[k]=u;
+						c[k]=c[u]+1;
+					}
+					
+					//经过结点数相同 向前追溯路径 直到相同者比较下一字符字典序
+					//                
+					//0  1  2  3  7  8    9(path[k]) 10(k)  原来的
+					//0  1  2  3  4  5    6(u)       10(k)  新找到的  
+					//追溯到3(pre=cur) 比较7和4(pre_next和cur_next) 
+					
+					else if(c[k]==c[u]+1){
+						int pre=path[k];
+						int cur=u;
+						int pre_next=pre;
+						int cur_next=cur;
+						while(pre!=cur&&pre!=-1&&cur!=-1){//追溯至相等 
+							pre_next=pre;
+							cur_next=cur;
+							pre=path[pre_next];
+							cur=path[cur_next];
+						}
+						if(pre==cur&&cur_next<pre_next){
+								path[k]=u;											
+						}
+						
+					}
+				
+	
+				}
+		
+				p=p->next;
+			}
+			
+		//换行遍历 确定即将被访问的顶点u	
+		int ldist=INF;
+		for(int i=0;i<m;i++){
+			if(dist[i]<ldist && s[i]==0){
+				ldist=dist[i];
+				u=i;
+			}
+		}
+		s[u]=1;
+		p=Head[u].adjacent;
+	}
+	
+	int a[20001];
+	for(int i=1;i<m;i++){
+		int j=i;
+		int num=0;
+		if(path[j]==-1) continue;
+		while(j!=-1){
+			a[num]=j;
+			num++;
+			j=path[j];
+		}
+		num--;
+		while(num>=0){
+			cout<<a[num];
+			if(num!=0) cout<<"->";
+			num--;
+		}
+		cout<<endl; 
+	}
+}
+
+
+
+int main(){
+	int m,n;
+	cin>>m>>n;
+	CreateGraph(m,n);
+	Dijkstra(Head,m);
+	
+	return 0;
+}

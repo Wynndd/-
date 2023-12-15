@@ -1,0 +1,141 @@
+/*文本转换 (10 分)（链表增删改查）
+艾迪正在打一篇稿子，稿子只包含空格和26个小写字母。但他的键盘中有6个按键出现了故障，当按下k键时会使当前输入光标左移一个字符位置（如果光标在文档头则不左移），当按下z键时会使当前输入光标右移一个字符位置（如果光标在文档尾则不右移），当按下w键时会使当前输入光标移至文档开始位置，当按下s键时会使当前输入光标移至文档尾，当按下q键时会删除当前输入光标前的一个字符，当按下m键时会使输入光标在插入和改写（覆盖）状态切换（初始是插入状态）。现给定艾迪的原始稿子，请编写程序输出使用故障键盘打出的稿件，即屏幕最终显示的文本。
+
+关于m键的解释：若当前输入状态是ab|cd（|表示光标）：
+（1）若处在插入状态，则输入字符插入到光标后面，如输入x，则变为abx|cd；
+（2）若处在改写（覆盖）状态，则输入字符覆盖光标后面的字符，如输入x，则变为abx|d。
+（3）初始时为插入状态，按一下m键切换到改写状态，
+再按一下m键切换回插入状态，再按一下m键，切换到改写状态......以此类推。
+
+输入格式:
+输入为一行字符，字符个数不超过50000，包含a-z的小写字母及空格，表示艾迪的原始稿件。
+
+输出格式:
+输出为一行字符，表示在艾迪使用故障键盘实际打出来的文本。
+
+输入样例1:
+abckd
+输出样例1:
+abdc
+输入样例2:
+abckkzd
+输出样例2:
+abdc
+输入样例3:
+abcwd
+输出样例3:
+dabc
+输入样例4:
+abcwdse
+输出样例4:
+dabce
+输入样例5:
+abcq
+输出样例5:
+ab
+输入样例6:
+abckmd
+输出样例6:
+abd
+输入样例7:
+abckkmdme
+输出样例7:
+adec
+*/
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+typedef struct node{
+	char c;
+	struct node* next;
+	struct node* pre;
+}Node;
+ 
+/*建立节点,声明指针*/
+Node* head;
+Node* last;//指向头尾节点的头尾指针 
+Node* cur;//当前光标(前一个)位置 
+Node* rear;//尾节点 
+Node* CreatNode(){
+	cur=(Node*)malloc(sizeof(Node));
+	cur->next=NULL;
+	cur->pre=NULL;
+	last=head=cur;
+	rear=(Node*)malloc(sizeof(Node));
+	cur->next=rear;
+	rear->pre=cur;
+	rear->next=NULL;
+	last=rear;
+	return head;
+}
+
+
+Node* Delete(){//删除cur处节点 
+	Node* prev=cur->pre;
+	cur->pre->next=cur->next;
+	cur->next->pre=cur->pre;
+	cur->pre=cur->next=NULL;
+	free(cur);
+	cur=prev;
+	return cur;
+}
+
+Node* Insert(char ch){ //在cur后插入节点 
+	Node* newnode=(Node*)malloc(sizeof(Node));
+	newnode->c=ch;
+	newnode->next=cur->next;
+	cur->next->pre=newnode;
+	cur->next=newnode;
+	newnode->pre=cur;
+	cur=newnode;
+	return cur; 
+}
+
+Node* Relpace(char ch){//替换cur后节点 
+	Node* newnode=(Node*)malloc(sizeof(Node));
+	newnode->c=ch;
+	cur->next->next->pre=newnode;
+	newnode->next=cur->next->next;
+	cur->next=newnode;
+	newnode->pre=cur;
+	cur=newnode;
+	return cur;
+}
+
+
+int main(){
+	int count=0;
+	char c[50000];
+	gets(c);
+	cur=CreatNode();
+	int len=strlen(c);
+
+	for(int i=0;i<len;i++){
+		if(c[i]=='k'){
+			if(cur!=head) cur=cur->pre;
+		}
+		else if(c[i]=='z'){
+			if(cur->next!=last) cur=cur->next;
+		}
+		else if(c[i]=='w'){
+			cur=head;
+		}
+		else if(c[i]=='s'){
+			cur=last->pre;
+		}
+		else if(c[i]=='q'){
+			cur=Delete();
+		}
+		else if(c[i]=='m'){
+			count++;
+		}
+		else{
+			if(count%2==0) cur=Insert(c[i]);
+			else cur=Relpace(c[i]);
+		}
+	}
+ 
+	for(Node* p=head->next;p!=last;p=p->next) printf("%c",p->c);
+ 
+	return 0;
+}

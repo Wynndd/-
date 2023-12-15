@@ -1,0 +1,120 @@
+/*括号匹配 (10 分) （栈写括号匹配）
+请编写程序判断一个包含“（”和“）”的括号序列是否匹配。如匹配则输出Match；如不匹配，计算出使该序列变为匹配序列所需添加的最少括号数目（只允许在该序列开始和结尾处添加括号），并输出经添加最少括号后得到的合法匹配序列。
+
+输入格式:
+输入为若干行，每行一个字符串，包含不超过10 
+5
+ 个括号。输入行数不超过10行。
+
+输出格式:
+对于输入的每个括号序列输出1行或2行信息。
+若输入的括号序列匹配，则输出Match。
+若不匹配，则输出分为2行，第1行为一个整数，表示将该序列变为匹配序列所需添加的最少括号数目，
+第2行为一个字符串，表示经添加最少括号后得到的合法匹配序列。
+
+输入样例:
+(())()
+)(
+()))((
+输出样例:
+Match
+2
+()()
+4
+((()))(())
+*/
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+struct Node{
+	char data;
+	struct Node *next;
+	struct Node *pre;
+};
+typedef struct Node *stack;
+stack CreateStack(){
+	stack s=(stack)malloc(sizeof(struct Node));
+	s->next=s->pre=NULL;
+	return s;
+}
+void push(stack s,char x){
+	stack tmp;
+	tmp=(stack)malloc(sizeof(struct Node));
+	tmp->data=x;
+	if(s->next!=NULL){
+	tmp->next=s->next;
+	s->next->pre=tmp;
+	}
+	s->next=tmp;
+	tmp->pre=s;
+}
+int pop(stack s,int pair,int left){
+	stack tmp=s->next;
+	if(left==1){
+	//	printf("!");
+		tmp->next=NULL;
+		tmp->pre=NULL;
+		free(tmp);
+	}
+	else{
+		s->next=tmp->next;
+		tmp->next->pre=s;
+		free(tmp);
+	}
+	return pair+1;
+}
+void TravelStack(stack head,stack tail){
+	stack tmp=tail;
+	while(tmp!=head){
+		printf("%c",tmp->data);
+		tmp=tmp->pre;
+	}
+} 
+int main(){
+	char element[10][100000];
+	int i=0,j=0,right1=0,pair=0,left=0,number=0,t=0;
+	while(j<10){
+		gets(element[j]);
+		if(!*element[j])break;
+		j++;
+	}
+	for(int f=0;f<j;f++){
+		number=strlen(element[f]);
+		stack s=CreateStack();
+		stack head=s;
+		stack tail;
+		for(i=0;i<number;i++){
+			if(element[f][i]=='('){
+				push(s,element[f][i]);
+				left++;
+			}
+			if(element[f][i]==')'){
+				if(left==0){
+				right1++;
+				}
+				else {
+				pair=pop(s,pair,left);
+				left--;
+				}
+			}
+		}
+		if(right1==0&&left==0)printf("Match");
+		else{
+			printf("%d\n",left+right1);
+			while(right1!=0){
+				printf("(");
+				right1--;
+			}
+			for(t=0;t<number;t++){
+				printf("%c",element[f][t]);
+			}
+			while(left!=0){
+				printf(")");
+				left--;
+			} 
+		}
+		printf("\n");
+	}
+	return 0;
+}
